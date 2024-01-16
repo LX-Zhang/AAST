@@ -1065,6 +1065,7 @@ void  Compute_ComponentGph(int no_trees, int no_tree_nodes, int no_all_lfs,
      component_graph[sorted_list[i]][0]=k;
    } /* i loop */
 
+   /*
    printf("component graph information\n");
    for (i=0; i<no_tree_nodes; i++) {
       printf("--%d--%d--\n", sorted_list[i], component_graph[sorted_list[i]][0]);
@@ -1074,6 +1075,7 @@ void  Compute_ComponentGph(int no_trees, int no_tree_nodes, int no_all_lfs,
        printf("\n");
       }
    }
+   */
 
 } /* Compute_ComponentGph */
 
@@ -1848,14 +1850,6 @@ int Align2_July8(int no_trees, int taxa,
   }
 
    MergeSort(non0_trs, 0, dim-1, len);
-
-  /*
-  for (i=0; i<dim; i++) {
-    printf("In align2_july18: i(%d), %d   %d\n", i, non0_trs[i], 
-      len[non0_trs[i]]*(-1));
-  }
-  printf(" \n\n");
-  */
 
   i=0; 
   for (j=0; j<dim; j++) {
@@ -2710,15 +2704,12 @@ int  Compute_tree(char* nw_str, int tree[NO_NODES][2]) {
 int Is_New_Names(char *taxon_name, char *names[], int old_index){
       int k;
 
-      /*
-      printf("inside(Is_new: old_index(%d); taxon_name(%s)\n", old_index, taxon_name); 
-       */
       if (old_index==0) return 0;
       for (k=0; k<old_index; k++) {
         /*
-        printf("taxon_name(%s); ", taxon_name); 
-        printf(" names_array(%s)\n",  names[k]); 
-        */
+        printf("     taxon_name(%s); ", taxon_name); 
+        printf("     k(%d) names_array(%s)\n", k,  names[k]); 
+         */
         if (strcmp(taxon_name, names[k])==0) { return 1; }
       }
       return 0;
@@ -2740,9 +2731,9 @@ int Extract_Taxa(char *newick_str, char *names[], int *current_index){
            newick_str[high] == ')') {
             if (high != low) {
                 memcpy(taxa_names[index], &newick_str[low], high - low);
-                /* printf("index(%d), new_taxa(%s)\n", index, taxa_names[index]); */
+                 taxa_names[index][high - low]='\0';
+                 /* printf("   xxxx===index(%d), new_taxa(%s)\n", index, taxa_names[index]); */
                 if (Is_New_Names(taxa_names[index], names,  old_index)==0){
-                  /*  printf(" here\n"); */
                  names[old_index]=(char *)malloc(strlen(taxa_names[index])+1);
                  strcpy(names[old_index], taxa_names[index]);
                  old_index++;
@@ -2843,9 +2834,7 @@ void   Print_Ntks_500(ntks_struct *new_ntks, int rets, char *taxa_names[], int n
          no_nodes=Simplify_Ntks_Aug22(graph, no_edges);
              sorted_nodes=(int *)malloc(sizeof(int)*(no_nodes+1));
      top_sort_Dec25(graph, no_nodes, no_edges, no_lfs, sorted_nodes);
-     /*
      fprintf(out_file, "=============// %d, %d; \n", no_lfs, no_nodes);
-      */
     
 
             /* fprintf(out_file, "new_form\n"); */
@@ -2996,7 +2985,8 @@ g_set *ntk_list;
 
    while (fscanf(tr_input_file, "%s\n", input_nw_str)!=EOF) {
       /* if (no_trees==0) { */
-      mix_edge_no=Convert_to_Edges(input_nw_str, taxa_names, I_trees[no_trees], &taxa_no,       I_lf_no);
+      mix_edge_no=Convert_to_Edges(input_nw_str, taxa_names, 
+          I_trees[no_trees], &taxa_no, I_lf_no);
        Add_Rootedge(mix_edge_no,  I_trees[no_trees], I_lf_no);
        I_trees[no_trees][0][0]=mix_edge_no+1;
       no_trees++;
@@ -3008,8 +2998,10 @@ g_set *ntk_list;
    /* move the largest tree to the first so that the first tree is not empty
  *   in the top component */
 
+  /*
   for (i=0; i<no_trees; i++)  Print_input_trees(i, I_trees[i][0][0],  I_trees[i]); 
   for (i=0; i<I_lf_no; i++) { printf("%d -->(%s)\n", i+1, taxa_names[i]); }
+  */
   
   for (i=0; i<NO_TREES; i++) {
      for (j=0; j<NO_NODES; j++) {
@@ -3030,6 +3022,7 @@ g_set *ntk_list;
    no_components=0;
    for (node_ind=2*I_lf_no; node_ind>=1; node_ind--)
        if (ComponentGraph[sorted_tnodes[0][node_ind]][0]>0)  no_components +=1;
+   if (ComponentGraph[sorted_tnodes[0][1]][0]<=0) no_components +=1;
 
    printf("There are %d trees which are decomposed into %d components\n", no_trees,  no_components);
 
@@ -3087,7 +3080,7 @@ g_set *ntk_list;
           t_p[j]=(int *)malloc(sizeof(int)*(2*I_lf_no+2));
           for (kkk=0; kkk<2*I_lf_no+2; kkk++) t_p[j][kkk]=-1;
           Process_Tree_Jan2024_v2(subtrees[j], no_lfs_top,  t_ch[j], t_p[j]);
-          Print_input_trees(j, subtrees[j][0][0], subtrees[j]);
+          /* Print_input_trees(j, subtrees[j][0][0], subtrees[j]); */
 
           subtr_lf_no=no_lfs_top;
          taxa_inci[j]=(int *)malloc(sizeof(int)*(2*subtr_lf_no+1));
@@ -3101,12 +3094,6 @@ g_set *ntk_list;
 
     printf("COMPONENT(%d) lf_no(%d)\n", current_comp, subtr_lf_no);
       
-      /* test purpose */
-      /*
-      if (node_ind==0 ) { printf("here\n"); exit(100); }
-      */
-
-
       for (j=0; j<subtr_lf_no; j++) zh[j]='0'+j; 
       zh[subtr_lf_no]='\0';
 
@@ -3159,7 +3146,7 @@ g_set *ntk_list;
        
        if (Q_front!=Q_end) { 
          printf("      Count in the middle pos(%d)\n", pos); 
-         Count_NNN(Q_front, Q_end); 
+        /*  Count_NNN(Q_front, Q_end); */
        }
 
        q_flag=0; ctt=0; 
@@ -3212,7 +3199,7 @@ g_set *ntk_list;
        
 
    
-    printf("     After sampling search--xxx- min_ret_no(%d)\n", min_ret_no);
+    printf("     After sampling search--- min_ret_no(%d)\n", min_ret_no);
     /*  if (Q_front!=Q_end) {  Count_NNN(Q_front, Q_end); } */
 
 
